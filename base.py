@@ -69,7 +69,7 @@ class BaseParser(ABC):
 
 
     @abstractmethod
-    def parse_title(cls, soup):
+    def parse_title(self, soup):
         '''
         Takes in a <BS4 Soup> object, extracts data.
         '''
@@ -77,7 +77,7 @@ class BaseParser(ABC):
 
 
     @abstractmethod
-    def parse_captions(cls, soup):
+    def parse_captions(self, soup):
         '''
         Takes in a <BS4 Soup> object, extracts data.
         '''
@@ -85,7 +85,7 @@ class BaseParser(ABC):
 
 
     @abstractmethod
-    def parse_text(cls, soup):
+    def parse_text(self, soup):
         '''
         Takes in a <BS4 Soup> object, extracts data.
         '''
@@ -93,7 +93,7 @@ class BaseParser(ABC):
 
 
     @abstractmethod
-    def parse_links(cls, soup):
+    def parse_links(self, soup):
         '''
         Takes in a <BS4 Soup> object, extracts data.
         '''
