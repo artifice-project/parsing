@@ -25,6 +25,11 @@ class BaseParser(ABC):
             return False
 
 
+    def same_site(self, link):
+        # checks whether the link points to an internal location
+        return True
+
+
     def __init__(self, url_root, user_agent='*',  upgrade_insecure=False, use_defaults=True):
         '''
         param:  url_root         <str>      URL netloc
@@ -57,6 +62,11 @@ class BaseParser(ABC):
         '''
         generic_user_agent = '*'
         return self.rp.can_fetch(generic_user_agent, url)
+
+
+    @staticmethod
+    def remove_duplicates(lst):
+        return list(dict.fromkeys(lst))
 
 
     @staticmethod
@@ -98,6 +108,19 @@ class BaseParser(ABC):
         Takes in a <BS4 Soup> object, extracts data.
         '''
         raise NotImplementedError
+
+
+    def strain_links(self, links):
+        '''
+        Filters and removes any links that are not worth scraping,
+        these could be anchor tags within the same page or ones
+        that would cause the scraper to leave the site.
+        '''
+        strained = []
+        for link in links:
+            if self.is_url(link) and self.same_site(link):
+                strained.append(link)
+        return strained
 
 
     def extract_content(self, response):
