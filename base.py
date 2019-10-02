@@ -1,6 +1,6 @@
 import os
 import requests
-import urllib, urllib.robotparser
+import urllib, urllib.parse, urllib.robotparser
 from abc import ABC, abstractmethod
 
 
@@ -88,7 +88,7 @@ class BaseParser(ABC):
         '''
         Strips duplicate items from a list, non-mutatively
         '''
-        if not ininstance(lst, list):
+        if not isinstance(lst, list):
             raise TypeError('{0} not a valid list'.format(lst))
         return list(dict.fromkeys(lst))
 
@@ -123,7 +123,7 @@ class BaseParser(ABC):
 
 
     def get_request(self, url):
-        if self.upgrade_insecure and urlparse(url).schema == 'http':
+        if self.upgrade_insecure and urllib.parse.urlparse(url).scheme == 'http':
             url = url.replace('http', 'https')
         headers = {'User-Agent': self.user_agent}
         response = requests.get(url, headers=headers)

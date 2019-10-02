@@ -4,7 +4,7 @@ from base import BaseParser
 class NPRParser(BaseParser):
 
     def __init__(self, url_root):
-        super().__init__(url_root)
+        super().__init__('https://www.npr.org/')
 
     def parse_title(self, soup):
         return soup.title.text or ''
