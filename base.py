@@ -196,6 +196,25 @@ class BaseParser(ABC):
         )
 
 
+    def match(self, url):
+        '''
+        Used by the Selector class to determine whether or not the parser
+        is capable of handling the provided URL. Returns a boolean value.
+        '''
+        return self.same_site(url)
+
+
+    def info(self, pretty=True):
+        '''
+        Expands on the behavior of __dict__ method to display robots.txt directives.
+        '''
+        from pprint import pformat
+        data = self.__dict__
+        data['rp'] = str(data.get('rp'))
+        if pretty:
+            return pformat(data)
+        return data
+
     # # @allowed ((class method decorator))
     # def allowed(foo):
     #     '''
