@@ -25,9 +25,16 @@ class BaseParser(ABC):
             return False
 
 
+    @staticmethod
+    def netloc(url):
+        return urllib.parse.urlparse(url).netloc
+
+
     def same_site(self, link):
         # checks whether the link points to an internal location
-        return True
+        nl_1 = self.netloc(self.url_root)
+        nl_2 = self.netloc(link)
+        return True if nl_1 == nl_2 else False
 
 
     def __init__(self, url_root, user_agent='*',  upgrade_insecure=False, use_defaults=True):
@@ -39,7 +46,7 @@ class BaseParser(ABC):
 
         return: content          <dict>
         '''
-        self.user_agent = '*'
+        self.user_agent = user_agent
         self.use_defaults = use_defaults
         self.upgrade_insecure = upgrade_insecure
 
