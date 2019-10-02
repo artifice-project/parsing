@@ -10,4 +10,4 @@ print('Allowed? {}'.format(yn))
 response = npr.get_request(url)
 d = npr.extract_content(response)
 from pprint import pprint
-pprint(d)
+# pprint(d)

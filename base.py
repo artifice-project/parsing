@@ -16,6 +16,43 @@ class BaseParser(ABC):
     parsed or that does not return a value can be either rendered as the
     default type for that attribute, or as a <None> type field.
     '''
+    def __init__(self,
+                url_root,
+                user_agent='*',
+                upgrade_insecure=False,
+                use_defaults=True,
+                ignore_missing_directive=False):
+        '''
+        param:  url_root         <str>      URL netloc
+        param:  upgrade_insecure <bool>     http --> https
+        param:  use_defaults     <bool>     return empty instance of type,
+         rather than none in the case that data is not present.
+        param:  ignore_missing_directive <bool> whether an error should be
+         raised in the case of a missing `robots.txt` file.
+        '''
+        self.user_agent = user_agent
+        self.use_defaults = use_defaults
+        self.upgrade_insecure = upgrade_insecure
+
+        if not self.is_url(url_root):
+            raise ValueError('{0} must be a valid url'.format(url_root))
+
+        url = urllib.parse.urlparse(url_root)
+
+        self.url_root = url.scheme + '://' + url.netloc
+        self.robots_url = os.path.join(self.url_root, 'robots.txt')
+
+        if \
+        self.get_request(self.robots_url).status_code != 200 \
+        and \
+        self.ignore_missing_directive is False:
+            raise ConnectionError('No `robots.txt` file found at {0}\nTo disable this behavior and treat all URLs as allowable, set the `ignore_missing_directive` arg to True'.format(self.robots_url))
+
+        self.rp = urllib.robotparser.RobotFileParser()
+        self.rp.set_url(self.robots_url)
+        self.rp.read()
+
+
     @staticmethod
     def is_url(url):
         try:
@@ -30,47 +67,6 @@ class BaseParser(ABC):
         return urllib.parse.urlparse(url).netloc
 
 
-    def same_site(self, link):
-        # checks whether the link points to an internal location
-        nl_1 = self.netloc(self.url_root)
-        nl_2 = self.netloc(link)
-        return True if nl_1 == nl_2 else False
-
-
-    def __init__(self, url_root, user_agent='*',  upgrade_insecure=False, use_defaults=True):
-        '''
-        param:  url_root         <str>      URL netloc
-        param:  upgrade_insecure <bool>     http --> https
-        param:  use_defaults     <bool>     return empty instance of type,
-         rather than none in the case that data is not present.
-
-        return: content          <dict>
-        '''
-        self.user_agent = user_agent
-        self.use_defaults = use_defaults
-        self.upgrade_insecure = upgrade_insecure
-
-        if not self.is_url(url_root):
-            raise ValueError('{0} must be a valid url'.format(url_root))
-
-        url = urllib.parse.urlparse(url_root)
-
-        self.url_root = url.scheme + '://' + url.netloc
-        self.robots_url = os.path.join(self.url_root, 'robots.txt')
-
-        self.rp = urllib.robotparser.RobotFileParser()
-        self.rp.set_url(self.robots_url)
-        self.rp.read()
-
-
-    def is_allowed(self, url):
-        '''
-        Checks robots.txt parser to see if url is allowed.
-        '''
-        generic_user_agent = '*'
-        return self.rp.can_fetch(generic_user_agent, url)
-
-
     @staticmethod
     def remove_duplicates(lst):
         return list(dict.fromkeys(lst))
@@ -83,6 +79,29 @@ class BaseParser(ABC):
         parser = 'html.parser'
         soup = BeautifulSoup(html, parser)
         return soup
+
+
+    def same_site(self, link):
+        # checks whether the link points to an internal location
+        nl_1 = self.netloc(self.url_root)
+        nl_2 = self.netloc(link)
+        return True if nl_1 == nl_2 else False
+
+
+    def is_allowed(self, url):
+        '''
+        Checks robots.txt parser to see if url is allowed.
+        '''
+        generic_user_agent = '*'
+        return self.rp.can_fetch(generic_user_agent, url)
+
+
+    def get_request(self, url):
+        if self.upgrade_insecure and urlparse(url).schema == 'http':
+            url = url.replace('http', 'https')
+        headers = {'User-Agent': self.user_agent}
+        response = requests.get(url, headers=headers)
+        return response
 
 
     @abstractmethod
@@ -150,13 +169,6 @@ class BaseParser(ABC):
             links=_links,
         )
 
-
-    def get_request(self, url):
-        if self.upgrade_insecure and urlparse(url).schema == 'http':
-            url = url.replace('http', 'https')
-        headers = {'User-Agent': self.user_agent}
-        response = requests.get(url, headers=headers)
-        return response
 
     # # @allowed ((class method decorator))
     # def allowed(foo):
