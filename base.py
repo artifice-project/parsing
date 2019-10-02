@@ -19,7 +19,7 @@ class BaseParser(ABC):
     def __init__(self,
                 url_root,
                 user_agent='*',
-                upgrade_insecure=False,
+                upgrade_insecure=True,
                 use_defaults=True,
                 ignore_missing_directive=False):
         '''
@@ -55,6 +55,18 @@ class BaseParser(ABC):
 
     @staticmethod
     def is_url(url):
+        '''
+        returns True:
+            http://www.example.com/
+            https://www.example.com/path
+            https://www.example.com?param=something
+
+        returns False:
+            /relative/path
+            #AnchorTag
+            www.missing-schema.com
+            partial.com
+        '''
         try:
             result = urllib.parse.urlparse(url)
             return all([result.scheme, result.netloc])
@@ -64,16 +76,28 @@ class BaseParser(ABC):
 
     @staticmethod
     def netloc(url):
+        '''
+        arg:     https://www.google.com/search?query=hello
+        returns: www.google.com
+        '''
         return urllib.parse.urlparse(url).netloc
 
 
     @staticmethod
     def remove_duplicates(lst):
+        '''
+        Strips duplicate items from a list, non-mutatively
+        '''
+        if not ininstance(lst, list):
+            raise TypeError('{0} not a valid list'.format(lst))
         return list(dict.fromkeys(lst))
 
 
     @staticmethod
     def pour_soup(response):
+        '''
+        Convenience function to create a BeautifulSoup object
+        '''
         from bs4 import BeautifulSoup
         html = response.content
         parser = 'html.parser'
@@ -82,7 +106,9 @@ class BaseParser(ABC):
 
 
     def same_site(self, link):
-        # checks whether the link points to an internal location
+        '''
+        Checks whether the link points to an internal location
+        '''
         nl_1 = self.netloc(self.url_root)
         nl_2 = self.netloc(link)
         return True if nl_1 == nl_2 else False
@@ -172,9 +198,13 @@ class BaseParser(ABC):
 
     # # @allowed ((class method decorator))
     # def allowed(foo):
-    #     def magic(self) :
+    #     '''
+    #     Decorator that will raise an error in the case that the
+    #     URL provided as argument is disallowed based on robots.txt
+    #     '''
+    #     def magic(self):
     #         print("start magic")
-    #         foo(self)
+    #         is_allowed(self)
     #         print(self.url_root)
     #         print("end magic")
     #     return magic
