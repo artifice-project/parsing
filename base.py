@@ -21,7 +21,8 @@ class BaseParser(ABC):
                 user_agent='*',
                 upgrade_insecure=True,
                 use_defaults=True,
-                ignore_missing_directive=False):
+                ignore_missing_directive=False,
+                rude=False):
         '''
         param:  url_root         <str>      URL netloc
         param:  upgrade_insecure <bool>     http --> https
@@ -33,6 +34,7 @@ class BaseParser(ABC):
         self.user_agent = user_agent
         self.use_defaults = use_defaults
         self.upgrade_insecure = upgrade_insecure
+        self.rude = rude
 
         if not self.is_url(url_root):
             raise ValueError('{0} must be a valid url'.format(url_root))
@@ -118,6 +120,8 @@ class BaseParser(ABC):
         '''
         Checks robots.txt parser to see if url is allowed.
         '''
+        if self.rude:
+            return True
         generic_user_agent = '*'
         return self.rp.can_fetch(generic_user_agent, url)
 

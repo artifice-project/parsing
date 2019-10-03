@@ -1,5 +1,3 @@
-from npr import NPRParser
-
 
 class Selector(object):
     '''
